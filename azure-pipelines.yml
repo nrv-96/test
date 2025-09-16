@@ -1,0 +1,34 @@
+trigger:
+- main   # change if your branch is different
+
+pool:
+  vmImage: 'ubuntu-latest'   # or 'macos-latest' if you prefer
+
+steps:
+# 1. Install JDK
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '17'          # Use Java version your project needs (11/17/21)
+    jdkArchitectureOption: 'x64'
+
+# 2. Grant permissions to gradlew
+- script: chmod +x gradlew
+  displayName: 'Make gradlew executable'
+
+# 3. Build APK with Gradle
+- task: Gradle@2
+  inputs:
+    gradleWrapperFile: 'gradlew'
+    gradleOptions: '-Xmx3072m'
+    publishJUnitResults: true
+    testResultsFiles: '**/TEST-*.xml'
+    tasks: 'assembleDebug'     # use 'assembleRelease' for signed builds
+  displayName: 'Build Android APK'
+
+# 4. Publish APK as Artifact
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: 'app/build/outputs/apk/debug'   # adjust if module name != app
+    ArtifactName: 'apk'
+    publishLocation: 'Container'
+  displayName: 'Publish APK Artifact'
