@@ -1,0 +1,39 @@
+name: Android CI
+
+on:
+  push:
+    branches:
+      - main   # change if your branch is different
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Checkout code
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. Setup Java (use the version your Gradle project needs)
+    - name: Setup JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    # 3. Grant permissions to gradlew
+    - name: Make gradlew executable
+      run: chmod +x gradlew
+
+    # 4. Build APK (Debug or Release)
+    - name: Build with Gradle
+      run: ./gradlew assembleDebug
+      # use ./gradlew assembleRelease or ./gradlew bundleRelease for Play Store
+
+    # 5. Upload APK as Artifact
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-apk
+        path: app/build/outputs/apk/debug/*.apk
